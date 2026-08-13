@@ -1,0 +1,259 @@
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { useNavigate, useParams } from "react-router-dom";
+
+const EditJob = () => {
+  const { jobId } = useParams();
+  const navigate = useNavigate();
+
+  const [formData, setFormData] = useState({
+    title: "",
+    company: "",
+    description: "",
+    location: "",
+    employmentType: "",
+    experienceLevel: "",
+    salary: "",
+    skills: "",
+    deadline: "",
+  });
+
+  const [jobStatus, setJobStatus] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const fetchJob = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await axios.get(`http://localhost:5000/api/jobs/${jobId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        const job = res.data;
+
+        setFormData({
+          title: job.title || "",
+          company: job.company || "",
+          description: job.description || "",
+          location: job.location || "",
+          employmentType: job.employmentType || "",
+          experienceLevel: job.experienceLevel || "",
+          salary: job.salary ?? "",
+          skills: Array.isArray(job.skills) ? job.skills.join(", ") : "",
+          deadline: job.deadline ? job.deadline.substring(0, 10) : "",
+        });
+
+        setJobStatus(job.status || "");
+      } catch (err) {
+        console.error(err);
+        setError("Failed to load job details.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchJob();
+  }, [jobId]);
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    setError("");
+
+    try {
+      const token = localStorage.getItem("token");
+
+      const payload = {
+        ...formData,
+        salary: Number(formData.salary),
+        skills: formData.skills
+          .split(",")
+          .map((s) => s.trim())
+          .filter((s) => s.length > 0),
+        // status is intentionally NOT sent here - it's managed only via the
+        // Publish / Close / Reopen buttons on the recruiter dashboard.
+      };
+
+      await axios.put(`http://localhost:5000/api/jobs/${jobId}`, payload, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      navigate("/recruiter/dashboard");
+    } catch (err) {
+      console.error(err);
+      setError(err.response?.data?.message || "Failed to update job.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) return <p className="p-6">Loading job details...</p>;
+
+  return (
+    <div className="p-6 max-w-xl mx-auto">
+      <h1 className="text-2xl font-bold mb-4">Edit Job</h1>
+
+      {jobStatus && (
+        <p className="text-sm text-gray-500 mb-4">
+          Current status: <strong>{jobStatus}</strong>. Use the Publish /
+          Close buttons on your dashboard to change it.
+        </p>
+      )}
+
+      {error && <p className="text-red-600 mb-3">{error}</p>}
+
+      <form onSubmit={handleSubmit} className="grid gap-4">
+        <div>
+          <label className="block text-sm font-medium mb-1">Title</label>
+          <input
+            type="text"
+            name="title"
+            value={formData.title}
+            onChange={handleChange}
+            className="border rounded p-2 w-full"
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">Company</label>
+          <input
+            type="text"
+            name="company"
+            value={formData.company}
+            onChange={handleChange}
+            className="border rounded p-2 w-full"
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">Description</label>
+          <textarea
+            name="description"
+            value={formData.description}
+            onChange={handleChange}
+            className="border rounded p-2 w-full"
+            rows={4}
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">Location</label>
+          <input
+            type="text"
+            name="location"
+            value={formData.location}
+            onChange={handleChange}
+            className="border rounded p-2 w-full"
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">
+            Employment Type
+          </label>
+          <select
+            name="employmentType"
+            value={formData.employmentType}
+            onChange={handleChange}
+            className="border rounded p-2 w-full"
+            required
+          >
+            <option value="">Select type</option>
+            <option value="Full-Time">Full-Time</option>
+            <option value="Part-Time">Part-Time</option>
+            <option value="Internship">Internship</option>
+            <option value="Contract">Contract</option>
+            <option value="Remote">Remote</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">Experience Level</label>
+          <select
+            name="experienceLevel"
+            value={formData.experienceLevel}
+            onChange={handleChange}
+            className="border rounded p-2 w-full"
+            required
+          >
+            <option value="">Select experience level</option>
+            <option value="Fresher">Fresher</option>
+            <option value="1 Year">1 Year</option>
+            <option value="2 Years">2 Years</option>
+            <option value="3 Years">3 Years</option>
+            <option value="4+ Years">4+ Years</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">Salary</label>
+          <input
+            type="number"
+            name="salary"
+            value={formData.salary}
+            onChange={handleChange}
+            className="border rounded p-2 w-full"
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">
+            Skills (comma-separated)
+          </label>
+          <input
+            type="text"
+            name="skills"
+            value={formData.skills}
+            onChange={handleChange}
+            placeholder="e.g. React, Node.js, MongoDB"
+            className="border rounded p-2 w-full"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">
+            Application Deadline
+          </label>
+          <input
+            type="date"
+            name="deadline"
+            value={formData.deadline}
+            onChange={handleChange}
+            className="border rounded p-2 w-full"
+            required
+          />
+        </div>
+
+        <div className="flex gap-3 mt-2">
+          <button
+            type="submit"
+            disabled={saving}
+            className="bg-blue-600 text-white px-4 py-2 rounded"
+          >
+            {saving ? "Saving..." : "Save Changes"}
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate("/recruiter/dashboard")}
+            className="border px-4 py-2 rounded"
+          >
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+};
+
+export default EditJob;

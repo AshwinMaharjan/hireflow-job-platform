@@ -18,6 +18,13 @@ const applyForJob = async (req, res) => {
             });
         }
 
+        // Block applications after the deadline
+        if (job.deadline && new Date() > new Date(job.deadline)) {
+            return res.status(400).json({
+                message: "The application deadline for this job has passed."
+            });
+        }
+
         // Prevent duplicate application
         const existingApplication = await Application.findOne({
             job: jobId,
@@ -39,7 +46,9 @@ const applyForJob = async (req, res) => {
                     const uploadStream = cloudinary.uploader.upload_stream(
                         {
                             resource_type: "raw",
-                            folder: "hireflow-resumes"
+                            folder: "hireflow-resumes",
+                            public_id: `${Date.now()}-${req.user.userId}.pdf`,
+                            format: "pdf"
                         },
                         (error, result) => {
                             if (error) return reject(error);
@@ -100,7 +109,7 @@ const getApplicantsByJob = async (req, res) => {
         const applications = await Application.find({
             job: req.params.jobId
         })
-        .populate("candidate", "name email")
+        .populate("candidate", "name email skills")
         .populate("job", "title company");
 
         res.status(200).json(applications);
@@ -121,7 +130,7 @@ const getMyApplications = async (req, res) => {
         const applications = await Application.find({
             candidate: req.user.userId
         })
-        .populate("job", "title company location salary")
+        .populate("job", "title company location salary employmentType")
         .populate("candidate", "name email");
 
         res.status(200).json(applications);

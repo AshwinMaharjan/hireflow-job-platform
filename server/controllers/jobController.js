@@ -1,4 +1,5 @@
 const Job = require("../models/Job");
+const Application = require("../models/Application"); 
 
 // Create Job
 const createJob = async (req, res) => {
@@ -10,11 +11,13 @@ const createJob = async (req, res) => {
             description,
             salary,
             employmentType,
-            skills
+            experienceLevel,
+            skills,
+            deadline
         } = req.body;
 
         // Validate required fields
-        if (!title || !company || !location || !description) {
+        if (!title || !company || !location || !description || !deadline || !experienceLevel) {
             return res.status(400).json({
                 message: "Please fill all required fields"
             });
@@ -27,8 +30,11 @@ const createJob = async (req, res) => {
             description,
             salary,
             employmentType,
+            experienceLevel,
             skills,
+            deadline,
             recruiter: req.user.userId
+            // status defaults to "Draft" via the schema
         });
 
         res.status(201).json({
@@ -42,10 +48,27 @@ const createJob = async (req, res) => {
         });
     }
 };
-// Get all jobs
+
+// Get all jobs (public listing - only Published jobs should be visible)
 const getAllJobs = async (req, res) => {
     try {
-        const jobs = await Job.find().populate(
+        const { search, location, employmentType } = req.query;
+
+        const filter = { status: "Published" };
+
+        if (search) {
+            filter.title = { $regex: search, $options: "i" };
+        }
+
+        if (location) {
+            filter.location = { $regex: location, $options: "i" };
+        }
+
+        if (employmentType) {
+            filter.employmentType = employmentType;
+        }
+
+        const jobs = await Job.find(filter).populate(
             "recruiter",
             "name email"
         );
@@ -58,6 +81,7 @@ const getAllJobs = async (req, res) => {
         });
     }
 };
+
 // Get single job
 const getJobById = async (req, res) => {
     try {
@@ -118,6 +142,48 @@ const updateJob = async (req, res) => {
     }
 };
 
+// Update Job Status only (Publish / Close / back to Draft)
+const updateJobStatus = async (req, res) => {
+    try {
+        const { status } = req.body;
+
+        const validStatuses = ["Draft", "Published", "Closed"];
+        if (!validStatuses.includes(status)) {
+            return res.status(400).json({
+                message: "Invalid status"
+            });
+        }
+
+        const job = await Job.findById(req.params.id);
+
+        if (!job) {
+            return res.status(404).json({
+                message: "Job not found"
+            });
+        }
+
+        // Ownership check
+        if (job.recruiter.toString() !== req.user.userId) {
+            return res.status(403).json({
+                message: "You are not allowed to update this job"
+            });
+        }
+
+        job.status = status;
+        await job.save();
+
+        res.status(200).json({
+            message: "Job status updated successfully",
+            job
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            message: error.message
+        });
+    }
+};
+
 // Delete Job
 const deleteJob = async (req, res) => {
     try {
@@ -149,10 +215,30 @@ const deleteJob = async (req, res) => {
     }
 };
 
+const getMyJobs = async (req, res) => {
+    try {
+
+        const jobs = await Job.find({
+            recruiter: req.user.userId
+        }).populate("recruiter", "name email");
+
+        res.status(200).json(jobs);
+
+    } catch (error) {
+
+        res.status(500).json({
+            message: error.message
+        });
+
+    }
+};
+
 module.exports = {
     createJob,
     getAllJobs,
+    getMyJobs,
     getJobById,
     updateJob,
+    updateJobStatus,
     deleteJob
 };

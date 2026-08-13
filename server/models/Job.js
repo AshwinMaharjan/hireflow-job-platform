@@ -30,8 +30,14 @@ const jobSchema = new mongoose.Schema(
 
         employmentType: {
             type: String,
-            enum: ["Full-Time", "Part-Time", "Internship", "Contract"],
+            enum: ["Full-Time", "Part-Time", "Internship", "Contract", "Remote"],
             default: "Full-Time"
+        },
+
+        experienceLevel: {
+            type: String,
+            enum: ["Fresher", "1 Year", "2 Years", "3 Years", "4+ Years"],
+            required: true
         },
 
         skills: {
@@ -41,8 +47,13 @@ const jobSchema = new mongoose.Schema(
 
         status: {
             type: String,
-            enum: ["draft", "published", "closed"],
-            default: "draft"
+            enum: ["Draft", "Published", "Closed"],
+            default: "Draft"
+        },
+
+        deadline: {
+            type: Date,
+            required: true
         },
 
         recruiter: {
