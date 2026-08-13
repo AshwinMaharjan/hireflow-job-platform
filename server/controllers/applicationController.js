@@ -1,5 +1,8 @@
 const Application = require("../models/Application");
 const Job = require("../models/Job");
+const cloudinary = require("../config/cloudinary");
+const streamifier = require("streamifier");
+
 
 // Candidate applies to a job
 const applyForJob = async (req, res) => {
@@ -27,11 +30,40 @@ const applyForJob = async (req, res) => {
             });
         }
 
+        let resumeUrl = "";
+
+        if (req.file) {
+            const uploadFromBuffer = () => {
+                return new Promise((resolve, reject) => {
+
+                    const uploadStream = cloudinary.uploader.upload_stream(
+                        {
+                            resource_type: "raw",
+                            folder: "hireflow-resumes"
+                        },
+                        (error, result) => {
+                            if (error) return reject(error);
+                            resolve(result);
+                        }
+                    );
+
+                    streamifier
+                        .createReadStream(req.file.buffer)
+                        .pipe(uploadStream);
+
+                });
+            };
+
+            const uploadedFile = await uploadFromBuffer();
+
+            resumeUrl = uploadedFile.secure_url;
+        }
+
         const application = await Application.create({
             job: jobId,
             candidate: req.user.userId,
             coverLetter: req.body.coverLetter || "",
-            resumeUrl: req.body.resumeUrl || ""
+            resumeUrl
         });
 
         res.status(201).json({
@@ -45,6 +77,7 @@ const applyForJob = async (req, res) => {
         });
     }
 };
+
 // Recruiter views applicants for a job
 const getApplicantsByJob = async (req, res) => {
     try {
@@ -101,6 +134,7 @@ const getMyApplications = async (req, res) => {
 
     }
 };
+
 // Recruiter updates application status
 const updateApplicationStatus = async (req, res) => {
     try {

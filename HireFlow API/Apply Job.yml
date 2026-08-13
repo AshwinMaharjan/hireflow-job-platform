@@ -1,0 +1,16 @@
+info:
+  name: Apply Job
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: http://localhost:5000/api/applications/6a7d3d3f4f253e74b12458d3
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+​

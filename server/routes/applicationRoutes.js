@@ -15,14 +15,22 @@ const {
 
 const router = express.Router();
 
-// Candidate views their applications
+const upload = require("../middleware/uploadMiddleware");
+
+// Candidate views
 router.get("/my-applications", protect, candidateOnly, getMyApplications);
 
-// Recruiter views applicants for a job
+// Recruiter views
 router.get("/:jobId", protect, recruiterOnly, getApplicantsByJob);
 
-// Candidate applies for a job
-router.post("/:jobId", protect, candidateOnly, applyForJob);
+// Candidate applies 
+router.post(
+  "/:jobId",
+  protect,
+  candidateOnly,
+  upload.single("resume"),
+  applyForJob,
+);
 
 router.patch("/:id/status", protect, recruiterOnly, updateApplicationStatus);
 
