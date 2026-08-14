@@ -36,7 +36,6 @@ router.get("/recruiter-test", protect, recruiterOnly, (req, res) => {
 });
 router.get("/me", protect, getMyProfile);
 router.put("/me", protect, updateMyProfile);
-
 router.post("/save-job/:jobId", protect, candidateOnly, toggleSaveJob);
 router.get("/saved-jobs", protect, candidateOnly, getSavedJobs);
 module.exports = router;

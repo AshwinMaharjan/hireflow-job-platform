@@ -75,7 +75,7 @@ const registerUser = async (req, res) => {
       message:
         "Registration successful. Please check your email to verify your account.",
       user: {
-        id: user._id,
+        _id: user._id,
         name: user.name,
         email: user.email,
         role: user.role,
@@ -185,7 +185,7 @@ const loginUser = async (req, res) => {
       message: "Login successful",
       token,
       user: {
-        id: user._id,
+        _id: user._id,
         name: user.name,
         email: user.email,
         role: user.role,

@@ -16,6 +16,7 @@ import CreateJob from "./pages/CreateJob";
 import Profile from "./pages/Profile";
 import SavedJobs from "./pages/SavedJobs";
 import VerifyEmail from "./pages/VerifyEmail";
+import Notifications from "./pages/Notifications";
 
 function App() {
   return (
@@ -62,7 +63,14 @@ function App() {
         <Route path="/recruiter/jobs/new" element={<CreateJob />} />
 
         <Route path="/verify-email/:token" element={<VerifyEmail />} />
-
+<Route
+  path="/notifications"
+  element={
+    <ProtectedRoute>
+      <Notifications />
+    </ProtectedRoute>
+  }
+/>
       </Routes>
     </>
   );
