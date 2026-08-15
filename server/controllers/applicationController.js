@@ -6,12 +6,12 @@ const Notification = require("../models/Notification");
 
 const { getIO } = require("../socket");
 
-// Candidate applies to a job
+
 const applyForJob = async (req, res) => {
   try {
     const jobId = req.params.jobId;
 
-    // Check if job exists
+    
     const job = await Job.findById(jobId);
 
     if (!job) {
@@ -20,14 +20,16 @@ const applyForJob = async (req, res) => {
       });
     }
 
-    // Block applications after the deadline
+    
+    
     if (job.deadline && new Date() > new Date(job.deadline)) {
       return res.status(400).json({
         message: "The application deadline for this job has passed.",
       });
     }
 
-    // Prevent duplicate application
+   
+    
     const existingApplication = await Application.findOne({
       job: jobId,
       candidate: req.user.userId,
@@ -84,7 +86,8 @@ const applyForJob = async (req, res) => {
   }
 };
 
-// Recruiter views applicants for a job
+
+
 const getApplicantsByJob = async (req, res) => {
   try {
     const job = await Job.findById(req.params.jobId);
@@ -95,7 +98,8 @@ const getApplicantsByJob = async (req, res) => {
       });
     }
 
-    // Ownership check
+
+    
     if (job.recruiter.toString() !== req.user.userId) {
       return res.status(403).json({
         message: "You are not allowed to view these applicants",
@@ -116,7 +120,8 @@ const getApplicantsByJob = async (req, res) => {
   }
 };
 
-// Candidate views their applications
+
+
 const getMyApplications = async (req, res) => {
   try {
     const applications = await Application.find({
@@ -133,12 +138,13 @@ const getMyApplications = async (req, res) => {
   }
 };
 
-// Recruiter updates application status
+
+
 const updateApplicationStatus = async (req, res) => {
   try {
     const { status } = req.body;
 
-    // Validate status
+    
     const validStatuses = ["Pending", "Reviewed", "Accepted", "Rejected"];
 
     if (!validStatuses.includes(status)) {
@@ -157,7 +163,7 @@ const updateApplicationStatus = async (req, res) => {
       });
     }
 
-    // Check job ownership
+    
     if (application.job.recruiter.toString() !== req.user.userId) {
       return res.status(403).json({
         message: "You are not allowed to update this application",

@@ -2,7 +2,8 @@ const User = require("../models/User");
 const Job = require("../models/Job");
 
 
-// Get logged-in user's own profile
+
+
 const getMyProfile = async (req, res) => {
     try {
         const user = await User.findById(req.user.userId).select("-password");
@@ -17,7 +18,8 @@ const getMyProfile = async (req, res) => {
     }
 };
 
-// Update logged-in user's own profile
+
+
 const updateMyProfile = async (req, res) => {
     try {
         const { name, skills } = req.body;
@@ -80,7 +82,8 @@ const toggleSaveJob = async (req, res) => {
     }
 };
 
-// Get all saved jobs (full job details)
+
+
 const getSavedJobs = async (req, res) => {
     try {
         const user = await User.findById(req.user.userId).populate("savedJobs");

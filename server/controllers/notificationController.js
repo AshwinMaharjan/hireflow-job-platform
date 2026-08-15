@@ -1,6 +1,7 @@
 const Notification = require("../models/Notification");
 
-// Get all notifications for logged in user
+
+
 const getMyNotifications = async (req, res) => {
   try {
     const notifications = await Notification.find({
@@ -17,7 +18,8 @@ const getMyNotifications = async (req, res) => {
     });
   }
 };
-// Mark a notification as read
+
+
 const markNotificationAsRead = async (req, res) => {
     try {
         const notification = await Notification.findById(req.params.id);
@@ -28,7 +30,7 @@ const markNotificationAsRead = async (req, res) => {
             });
         }
 
-        // Ensure users can only update their own notifications
+        
         if (notification.recipient.toString() !== req.user.userId) {
             return res.status(403).json({
                 message: "You are not authorized to update this notification"

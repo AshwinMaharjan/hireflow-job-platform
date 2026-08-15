@@ -25,7 +25,9 @@ const jobSchema = new mongoose.Schema(
 
         salary: {
             type: Number,
-            default: 0
+    default: 0,
+    min: [0, "Salary cannot be below 0"],
+    max: [150000, "Salary cannot exceed 1,50,000"]
         },
 
         employmentType: {

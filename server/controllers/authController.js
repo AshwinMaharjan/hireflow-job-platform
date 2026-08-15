@@ -8,14 +8,21 @@ const registerUser = async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
 
-    // Check required fields
     if (!name || !email || !password) {
       return res.status(400).json({
         message: "Name, email and password are required",
       });
     }
 
-    // Check if user already exists
+    const passwordRegex = /^(?=.*[0-9!@#$%^&*])[A-Za-z0-9!@#$%^&*]{6,}$/;
+
+    if (!passwordRegex.test(password)) {
+      return res.status(400).json({
+        message:
+          "Password must be at least 6 characters long and include at least one number or special character",
+      });
+    }
+
     const existingUser = await User.findOne({ email });
 
     if (existingUser) {
@@ -23,16 +30,14 @@ const registerUser = async (req, res) => {
         message: "User already exists",
       });
     }
-    // Generate verification token
+
     const verificationToken = generateVerificationToken();
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user
     const user = await User.create({
       name,
       email,
-     password: hashedPassword,
+      password: hashedPassword,
       role,
       verificationToken,
       verificationTokenExpires: Date.now() + 15 * 60 * 1000,
@@ -93,12 +98,10 @@ const verifyEmail = async (req, res) => {
   try {
     const { token } = req.params;
 
-    // Find user using verification token
     const user = await User.findOne({
       verificationToken: token,
     });
 
-    // Token doesn't exist
     if (!user) {
       return res.status(400).json({
         success: false,
@@ -106,7 +109,6 @@ const verifyEmail = async (req, res) => {
       });
     }
 
-    // User already verified
     if (user.isVerified) {
       return res.status(200).json({
         success: true,
@@ -114,7 +116,6 @@ const verifyEmail = async (req, res) => {
       });
     }
 
-    // Check token expiry
     if (user.verificationTokenExpires < Date.now()) {
       return res.status(400).json({
         success: false,
@@ -122,7 +123,6 @@ const verifyEmail = async (req, res) => {
       });
     }
 
-    // Verify user
     user.isVerified = true;
 
     await user.save();
@@ -131,7 +131,6 @@ const verifyEmail = async (req, res) => {
       success: true,
       message: "Email verified successfully",
     });
-
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -140,18 +139,17 @@ const verifyEmail = async (req, res) => {
     });
   }
 };
+
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Check required fields
     if (!email || !password) {
       return res.status(400).json({
         message: "Email and password are required",
       });
     }
 
-    // Find user
     const user = await User.findOne({ email });
 
     if (!user) {
@@ -160,7 +158,6 @@ const loginUser = async (req, res) => {
       });
     }
 
-    // Compare password
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
@@ -169,7 +166,14 @@ const loginUser = async (req, res) => {
       });
     }
 
-    // Create JWT
+
+    
+    if (!user.isVerified) {
+      return res.status(403).json({
+        message: "Please verify your email before logging in.",
+      });
+    }
+
     const token = jwt.sign(
       {
         userId: user._id,

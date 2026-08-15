@@ -17,6 +17,8 @@ import Profile from "./pages/Profile";
 import SavedJobs from "./pages/SavedJobs";
 import VerifyEmail from "./pages/VerifyEmail";
 import Notifications from "./pages/Notifications";
+import AvailableJobs from "./components/AvailableJobs";
+import MyJobs from "./pages/MyJobs";
 
 function App() {
   return (
@@ -61,13 +63,24 @@ function App() {
         <Route path="/recruiter/jobs/:jobId/edit" element={<EditJob />} />
         <Route path="*" element={<NotFound />} />
         <Route path="/recruiter/jobs/new" element={<CreateJob />} />
+        <Route path="/recruiter/my-jobs" element={<MyJobs />} />
 
         <Route path="/verify-email/:token" element={<VerifyEmail />} />
-<Route
-  path="/notifications"
+        <Route
+          path="/notifications"
+          element={
+            <ProtectedRoute>
+              <Notifications />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/jobs" element={<AvailableJobs />} />
+
+        <Route
+  path="/recruiter/jobs"
   element={
-    <ProtectedRoute>
-      <Notifications />
+    <ProtectedRoute role="recruiter">
+      <MyJobs />
     </ProtectedRoute>
   }
 />

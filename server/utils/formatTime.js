@@ -26,6 +26,6 @@ export const formatNotificationTime = (date) => {
     return "Yesterday";
   }
 
-  // Older than yesterday — show full date
+
   return target.format("D MMM YYYY, h:mm A");
 };

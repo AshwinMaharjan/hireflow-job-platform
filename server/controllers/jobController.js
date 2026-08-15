@@ -1,7 +1,8 @@
 const Job = require("../models/Job");
 const Application = require("../models/Application"); 
 
-// Create Job
+
+
 const createJob = async (req, res) => {
     try {
         const {
@@ -16,11 +17,24 @@ const createJob = async (req, res) => {
             deadline
         } = req.body;
 
-        // Validate required fields
+    
+        
         if (!title || !company || !location || !description || !deadline || !experienceLevel) {
             return res.status(400).json({
                 message: "Please fill all required fields"
             });
+        }
+
+     
+        
+        if (salary !== undefined && salary !== null && salary !== "") {
+            const salaryNum = Number(salary);
+
+            if (isNaN(salaryNum) || salaryNum < 0 || salaryNum > 150000) {
+                return res.status(400).json({
+                    message: "Salary must be between 0 and 1,50,000"
+                });
+            }
         }
 
         const job = await Job.create({
@@ -34,7 +48,6 @@ const createJob = async (req, res) => {
             skills,
             deadline,
             recruiter: req.user.userId
-            // status defaults to "Draft" via the schema
         });
 
         res.status(201).json({
@@ -49,7 +62,8 @@ const createJob = async (req, res) => {
     }
 };
 
-// Get all jobs (public listing - only Published jobs should be visible)
+
+
 const getAllJobs = async (req, res) => {
     try {
         const { search, location, employmentType } = req.query;
@@ -82,7 +96,8 @@ const getAllJobs = async (req, res) => {
     }
 };
 
-// Get single job
+
+
 const getJobById = async (req, res) => {
     try {
         const job = await Job.findById(req.params.id)
@@ -103,7 +118,8 @@ const getJobById = async (req, res) => {
     }
 };
 
-// Update Job
+
+
 const updateJob = async (req, res) => {
     try {
         const job = await Job.findById(req.params.id);
@@ -142,7 +158,8 @@ const updateJob = async (req, res) => {
     }
 };
 
-// Update Job Status only (Publish / Close / back to Draft)
+
+
 const updateJobStatus = async (req, res) => {
     try {
         const { status } = req.body;

@@ -5,12 +5,12 @@ import { AuthContext } from "../context/AuthContext";
 function ProtectedRoute({ children, role }) {
   const { user } = useContext(AuthContext);
 
-  // User not logged in
+  // yedi user logged in xaina vaye chai yo vayoo
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  // Wrong role
+  // yed user ko role wrong vayoo vane chai yo vayoo
   if (role && user.role !== role) {
     return <Navigate to="/" replace />;
   }
