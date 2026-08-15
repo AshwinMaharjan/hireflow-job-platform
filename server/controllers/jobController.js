@@ -234,19 +234,33 @@ const deleteJob = async (req, res) => {
 
 const getMyJobs = async (req, res) => {
     try {
-
         const jobs = await Job.find({
             recruiter: req.user.userId
-        }).populate("recruiter", "name email");
+        })
+            .populate("recruiter", "name email")
+            .lean();
 
-        res.status(200).json(jobs);
+        const jobsWithApplicantCount = await Promise.all(
+            jobs.map(async (job) => {
+                const applicantCount = await Application.countDocuments({
+                    job: job._id
+                });
+
+                return {
+                    ...job,
+                    applicantCount
+                };
+            })
+        );
+
+        res.status(200).json(jobsWithApplicantCount);
 
     } catch (error) {
+        console.error("Get my jobs error:", error);
 
         res.status(500).json({
             message: error.message
         });
-
     }
 };
 
