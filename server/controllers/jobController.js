@@ -219,6 +219,9 @@ const deleteJob = async (req, res) => {
             });
         }
 
+        // Remove applications tied to this job first, to avoid orphaned records
+        await Application.deleteMany({ job: job._id });
+
         await job.deleteOne();
 
         res.status(200).json({
